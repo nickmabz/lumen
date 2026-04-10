@@ -83,9 +83,28 @@ export function Sidebar({
 
       {/* Bottom */}
       <div
-        className="px-5 py-4 flex-shrink-0"
+        className="px-4 py-4 flex items-center justify-between flex-shrink-0"
         style={{ borderTop: "1px solid var(--border)" }}
       >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="flex items-center justify-center rounded-full flex-shrink-0"
+            style={{
+              width: 30,
+              height: 30,
+              background: "#1c1917",
+              color: "#f0ede8",
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: "0.02em",
+            }}
+          >
+            N
+          </div>
+          <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+            Nicolas
+          </span>
+        </div>
         <ThemeToggle />
       </div>
     </div>

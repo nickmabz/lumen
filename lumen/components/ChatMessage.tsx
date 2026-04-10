@@ -1,6 +1,7 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { LumenLogo } from "./LumenLogo";
 import { CodeBlock } from "./CodeBlock";
 
@@ -55,6 +56,7 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
         ) : (
           <div className="prose-chat">
             <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
               components={{
                 // Block code: handled via pre wrapper
                 pre({ children }) {
