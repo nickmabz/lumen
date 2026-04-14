@@ -17,14 +17,30 @@ export default function ChatPage() {
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isAtBottomRef = useRef(true);
 
   const currentConversation = conversations.find((c) => c.id === currentId);
   const messages = (currentConversation?.messages ?? []) as Message[];
 
-  // Auto-scroll to bottom when messages update
+  // Reset scroll position tracking when switching conversations
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    isAtBottomRef.current = true;
+  }, [currentId]);
+
+  // Auto-scroll only when the user is already near the bottom
+  useEffect(() => {
+    if (isAtBottomRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
+
+  const handleScroll = () => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    isAtBottomRef.current = distanceFromBottom < 80;
+  };
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isStreaming) return;
@@ -144,7 +160,7 @@ export default function ChatPage() {
         ) : (
           <>
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto">
+            <div ref={scrollContainerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto">
               <div className="max-w-3xl mx-auto py-6">
                 {messages.map((msg) => (
                   <ChatMessage
