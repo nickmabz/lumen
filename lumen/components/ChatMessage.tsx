@@ -2,7 +2,7 @@
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { LumenLogo } from "./LumenLogo";
+import { LumenLogo, LumenThinking } from "./LumenLogo";
 import { CodeBlock } from "./CodeBlock";
 
 interface ChatMessageProps {
@@ -48,11 +48,7 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
         }}
       >
         {showTyping ? (
-          <div className="flex items-center gap-1.5 h-5">
-            <span className="typing-dot" />
-            <span className="typing-dot" />
-            <span className="typing-dot" />
-          </div>
+          <LumenThinking />
         ) : (
           <div className="prose-chat">
             <ReactMarkdown

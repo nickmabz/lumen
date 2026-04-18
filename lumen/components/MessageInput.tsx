@@ -39,7 +39,7 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
   return (
     <div className="px-4 pb-5 pt-2 flex-shrink-0">
       <div
-        className="flex items-end gap-3 px-4 py-3 rounded-2xl transition-shadow"
+        className="flex items-center gap-3 px-4 py-3 rounded-2xl transition-shadow"
         style={{
           background: "var(--bg-input)",
           border: "1px solid var(--border-input)",
