@@ -54,6 +54,12 @@ export default function ChatPage() {
     }
   }, [messages]);
 
+  const handleDeleteChat = (id: string) => {
+    setConversations((prev) => prev.filter((c) => c.id !== id));
+    if (currentId === id) setCurrentId(null);
+    fetch(`/api/chats/${id}`, { method: "DELETE" }).catch(() => {});
+  };
+
   const handleScroll = () => {
     const el = scrollContainerRef.current;
     if (!el) return;
@@ -181,6 +187,7 @@ export default function ChatPage() {
         onNewChat={() => {
           if (!isStreaming) setCurrentId(null);
         }}
+        onDelete={handleDeleteChat}
       />
 
       {/* Main area */}
