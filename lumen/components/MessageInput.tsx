@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface MessageInputProps {
   onSend: (text: string) => void;
@@ -10,6 +10,16 @@ interface MessageInputProps {
 export function MessageInput({ onSend, disabled }: MessageInputProps) {
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (!disabled) {
+      textareaRef.current?.focus();
+    }
+  }, [disabled]);
 
   const canSend = value.trim().length > 0 && !disabled;
 

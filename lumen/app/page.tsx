@@ -16,9 +16,28 @@ export default function ChatPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isAtBottomRef = useRef(true);
+
+  // User init — determines is_new_user for the welcome message
+  useEffect(() => {
+    fetch("/api/user/init", { method: "POST" })
+      .then((r) => r.json())
+      .then((data) => setIsNewUser(data.is_new_user ?? false))
+      .catch(() => setIsNewUser(false));
+  }, []);
+
+  // Load persisted chat history from Supabase on mount
+  useEffect(() => {
+    fetch("/api/chats")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.chats?.length) setConversations(data.chats);
+      })
+      .catch(() => {});
+  }, []);
 
   const currentConversation = conversations.find((c) => c.id === currentId);
   const messages = (currentConversation?.messages ?? []) as Message[];
@@ -46,14 +65,14 @@ export default function ChatPage() {
     if (!text.trim() || isStreaming) return;
 
     const isNew = !currentId;
-    const convId = currentId ?? `conv-${Date.now()}`;
+    const convId = currentId ?? crypto.randomUUID();
     const userMsgId = `msg-${Date.now()}`;
     const assistantMsgId = `msg-${Date.now() + 1}`;
 
     const userMsg: Message = { id: userMsgId, role: "user", content: text };
     const assistantMsg: Message = { id: assistantMsgId, role: "assistant", content: "" };
 
-    // Capture current messages before state update for API call
+    // Capture messages before state update — needed for API payload and Supabase save
     const prevMessages = messages;
 
     if (isNew) {
@@ -79,6 +98,8 @@ export default function ChatPage() {
       { role: "user", content: text },
     ];
 
+    let fullResponse = "";
+
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -96,6 +117,7 @@ export default function ChatPage() {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
+        fullResponse += chunk;
 
         setConversations((prev) =>
           prev.map((c) => {
@@ -111,6 +133,19 @@ export default function ChatPage() {
           })
         );
       }
+
+      // Persist the full conversation to Supabase after successful stream
+      const allMessages = [
+        ...prevMessages,
+        { id: userMsgId, role: "user", content: text },
+        { id: assistantMsgId, role: "assistant", content: fullResponse },
+      ];
+
+      fetch("/api/chats", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ convId, messages: allMessages }),
+      }).catch(() => {});
     } catch {
       setConversations((prev) =>
         prev.map((c) => {
@@ -152,7 +187,7 @@ export default function ChatPage() {
       <div className="flex flex-col flex-1 min-w-0 h-full overflow-hidden">
         {messages.length === 0 ? (
           <>
-            <EmptyState onSuggest={sendMessage} />
+            <EmptyState onSuggest={sendMessage} isNewUser={isNewUser} />
             <div className="max-w-3xl mx-auto w-full px-0">
               <MessageInput onSend={sendMessage} disabled={isStreaming} />
             </div>

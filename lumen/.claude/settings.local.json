@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -e \"require\\('remark-gfm'\\); console.log\\('remark-gfm OK'\\)\")"
+      "Bash(node -e \"require\\('remark-gfm'\\); console.log\\('remark-gfm OK'\\)\")",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)"
     ]
   }
 }

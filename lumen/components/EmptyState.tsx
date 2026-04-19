@@ -1,11 +1,11 @@
 "use client";
 
-import { LumenLogo } from "./LumenLogo";
+import { useUser } from "@clerk/nextjs";
 
 const SUGGESTIONS = [
   {
     icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
         <circle cx="11" cy="11" r="8" />
         <line x1="21" y1="21" x2="16.65" y2="16.65" />
         <line x1="11" y1="8" x2="11" y2="14" />
@@ -18,7 +18,7 @@ const SUGGESTIONS = [
   },
   {
     icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
         <polyline points="16 18 22 12 16 6" />
         <polyline points="8 6 2 12 8 18" />
       </svg>
@@ -29,7 +29,7 @@ const SUGGESTIONS = [
   },
   {
     icon: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
         <circle cx="12" cy="12" r="3" />
       </svg>
@@ -42,44 +42,77 @@ const SUGGESTIONS = [
 
 interface EmptyStateProps {
   onSuggest: (prompt: string) => void;
+  isNewUser: boolean | null;
 }
 
-export function EmptyState({ onSuggest }: EmptyStateProps) {
+export function EmptyState({ onSuggest, isNewUser }: EmptyStateProps) {
+  const { user } = useUser();
+  const raw = user?.firstName ?? "";
+  const firstName = raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : "";
+
+  const heading =
+    isNewUser === false
+      ? `Welcome back${firstName ? `, ${firstName}` : ""}`
+      : "Welcome to Lumen";
+
+  const subtitle =
+    isNewUser === false
+      ? "Ready to pick up where you left off."
+      : "Your AI coding assistant.";
+
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-6">
-      <div className="flex flex-col items-center gap-8 w-full max-w-xl">
-        {/* Logo + tagline */}
-        <div className="flex flex-col items-center gap-4">
-          <LumenLogo size={52} glow />
-          <div className="flex flex-col items-center gap-1.5 text-center">
-            <h1
-              className="font-semibold tracking-tight"
-              style={{ fontSize: 22, color: "var(--text-primary)" }}
-            >
-              How can I illuminate your code today?
-            </h1>
-            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-              Light in the dark
-            </p>
-          </div>
+      <div className="flex flex-col items-center gap-10 w-full max-w-2xl">
+        {/* Heading */}
+        <div className="flex flex-col items-center gap-2 text-center">
+          <h1
+            style={{
+              fontSize: 38,
+              fontWeight: 600,
+              letterSpacing: "-0.022em",
+              lineHeight: 1.1,
+              color: "var(--text-primary)",
+            }}
+          >
+            {heading}
+          </h1>
+          <p
+            style={{
+              fontSize: 14,
+              color: "var(--text-secondary)",
+              lineHeight: 1.5,
+            }}
+          >
+            {subtitle}
+          </p>
         </div>
 
         {/* Suggestion cards */}
-        <div className="grid grid-cols-3 gap-3 w-full">
+        <div className="grid grid-cols-3 gap-2.5 w-full">
           {SUGGESTIONS.map(({ icon, label, description, prompt }) => (
             <button
               key={label}
               className="suggestion-card"
               onClick={() => onSuggest(prompt)}
+              style={{ padding: "10px 12px", gap: 4 }}
             >
-              <span style={{ color: "var(--amber)" }}>{icon}</span>
+              <span style={{ color: "var(--text-secondary)" }}>{icon}</span>
               <span
-                className="font-medium text-sm"
-                style={{ color: "var(--text-primary)" }}
+                style={{
+                  fontSize: 12.5,
+                  fontWeight: 500,
+                  color: "var(--text-primary)",
+                }}
               >
                 {label}
               </span>
-              <span className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+              <span
+                style={{
+                  fontSize: 11.5,
+                  color: "var(--text-secondary)",
+                  lineHeight: 1.4,
+                }}
+              >
                 {description}
               </span>
             </button>

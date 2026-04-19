@@ -10,6 +10,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.86.1",
     "@clerk/nextjs": "^7.1.0",
+    "@supabase/supabase-js": "^2.103.3",
     "@types/react-syntax-highlighter": "^15.5.13",
     "next": "16.2.3",
     "react": "19.2.4",
