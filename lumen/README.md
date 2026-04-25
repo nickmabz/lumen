@@ -18,7 +18,7 @@
 
 ## What is Lumen?
 
-Lumen is an AI coding assistant designed to act as an always-available senior developer for web agencies and freelance developers. It sits alongside your workflow to help you move faster, ship cleaner code, and catch issues before they reach production.
+Lumen is an AI coding assistant designed to act as an always-available senior developer for developers. It sits alongside your workflow to help you move faster, ship cleaner code, and catch issues before they reach production.
 
 Instead of context-switching to Stack Overflow, documentation sites, or generic chat tools, Lumen gives you a single focused interface built to think like a developer — understanding not just *what* you're asking, but *why* it matters in a real codebase.
 
@@ -102,7 +102,7 @@ Lumen identifies opportunities to simplify, consolidate, or restructure code —
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/mabeya-nicolas/lumen.git
+git clone https://github.com/nickmabz/lumen.git
 cd lumen
 
 # 2. Install dependencies
@@ -194,7 +194,7 @@ Lumen V2 is **actively in development**. Core features — AI chat, RAG codebase
 
 ## Author
 
-Built by **Mabeya Nicolas**
+Built by **Nicolas Mabeya**
 
 ---
 
