@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 
+const WARN_CHARS = 6000;
+const MAX_CHARS = 8000;
+
 interface MessageInputProps {
   onSend: (text: string, webSearch: boolean) => void;
   disabled?: boolean;
@@ -11,6 +14,11 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
   const [value, setValue] = useState("");
   const [webSearch, setWebSearch] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const charCount = value.length;
+  const approxTokens = Math.round(charCount / 4);
+  const isOverLimit = charCount > MAX_CHARS;
+  const showCounter = charCount > WARN_CHARS;
 
   useEffect(() => {
     textareaRef.current?.focus();
@@ -22,7 +30,7 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
     }
   }, [disabled]);
 
-  const canSend = value.trim().length > 0 && !disabled;
+  const canSend = value.trim().length > 0 && !disabled && !isOverLimit;
 
   const handleSend = () => {
     if (!canSend) return;
@@ -49,11 +57,16 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
 
   return (
     <div className="px-4 pb-5 pt-2 flex-shrink-0">
+      {isOverLimit && (
+        <p className="text-xs mb-2 px-1" style={{ color: "#ef4444" }}>
+          ⚠️ Input too large — paste a smaller section.
+        </p>
+      )}
       <div
         className="flex items-center gap-3 px-4 py-3 rounded-2xl transition-shadow"
         style={{
           background: "var(--bg-input)",
-          border: "1px solid var(--border-input)",
+          border: `1px solid ${isOverLimit ? "#ef4444" : "var(--border-input)"}`,
           boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
         }}
       >
@@ -109,12 +122,22 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
         </button>
       </div>
 
-      <p
-        className="text-center text-xs mt-2"
-        style={{ color: "var(--text-secondary)", opacity: 0.6 }}
-      >
-        Enter to send · Shift+Enter for new line
-      </p>
+      <div className="flex items-center justify-between mt-2 px-1">
+        <p
+          className="text-xs"
+          style={{ color: "var(--text-secondary)", opacity: 0.6 }}
+        >
+          Enter to send · Shift+Enter for new line
+        </p>
+        {showCounter && (
+          <p
+            className="text-xs tabular-nums"
+            style={{ color: isOverLimit ? "#ef4444" : "#ffbe3d" }}
+          >
+            ~{approxTokens.toLocaleString()} / 2,000 tokens
+          </p>
+        )}
+      </div>
     </div>
   );
 }
