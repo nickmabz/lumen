@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
 import { createServerSupabaseClient } from "@/lib/supabase-server";
+import { searchEmbeddings } from "@/lib/rag";
 
 const client = new Anthropic();
 
@@ -63,10 +64,32 @@ export async function POST(request: Request) {
     { role: "user", content: message },
   ];
 
+  // Search user's indexed codebase and inject relevant chunks into the system prompt
+  let systemPrompt = SYSTEM_PROMPT;
+  const latestUserMsg = [...anthropicMessages].reverse().find((m) => m.role === "user");
+  const queryText =
+    latestUserMsg && typeof latestUserMsg.content === "string"
+      ? latestUserMsg.content
+      : null;
+
+  if (queryText) {
+    try {
+      const ragChunks = await searchEmbeddings(queryText, userId);
+      if (ragChunks.length > 0) {
+        const codeContext = ragChunks
+          .map((c) => `// ${c.file_name}\n${c.content}`)
+          .join("\n\n---\n\n");
+        systemPrompt = `${SYSTEM_PROMPT}\n\nHere is relevant code from the user's codebase:\n\`\`\`\n${codeContext}\n\`\`\``;
+      }
+    } catch {
+      // proceed without RAG context if search fails
+    }
+  }
+
   const stream = await client.messages.stream({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 4096,
-    system: SYSTEM_PROMPT,
+    system: systemPrompt,
     messages: anthropicMessages,
     ...(webSearch && {
       tools: [{ type: "web_search_20250305" as const, name: "web_search" as const }],

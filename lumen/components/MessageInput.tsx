@@ -7,13 +7,20 @@ const MAX_CHARS = 8000;
 
 interface MessageInputProps {
   onSend: (text: string, webSearch: boolean) => void;
+  onFileIndexed?: () => void;
   disabled?: boolean;
 }
 
-export function MessageInput({ onSend, disabled }: MessageInputProps) {
+type UploadStatus = "idle" | "uploading" | "done" | "error";
+
+const ACCEPTED_EXTENSIONS = ".js,.ts,.tsx,.jsx,.py,.css,.html";
+
+export function MessageInput({ onSend, onFileIndexed, disabled }: MessageInputProps) {
   const [value, setValue] = useState("");
   const [webSearch, setWebSearch] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<UploadStatus>("idle");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const charCount = value.length;
   const approxTokens = Math.round(charCount / 4);
@@ -55,8 +62,40 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
     el.style.height = `${Math.min(el.scrollHeight, 180)}px`;
   };
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+
+    setUploadStatus("uploading");
+    try {
+      const content = await file.text();
+      const res = await fetch("/api/rag/upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileName: file.name, content }),
+      });
+      if (res.ok) {
+        setUploadStatus("done");
+        onFileIndexed?.();
+      } else {
+        setUploadStatus("error");
+      }
+    } catch {
+      setUploadStatus("error");
+    }
+    setTimeout(() => setUploadStatus("idle"), 3000);
+  };
+
   return (
     <div className="px-4 pb-5 pt-2 flex-shrink-0">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={ACCEPTED_EXTENSIONS}
+        className="hidden"
+        onChange={handleFileChange}
+      />
       {isOverLimit && (
         <p className="text-xs mb-2 px-1" style={{ color: "#ef4444" }}>
           ⚠️ Input too large — paste a smaller section.
@@ -86,6 +125,23 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
             fontFamily: "inherit",
           }}
         />
+
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={disabled || uploadStatus === "uploading"}
+          className="flex-shrink-0 flex items-center justify-center rounded-lg transition-all"
+          style={{
+            width: 32,
+            height: 32,
+            background: "transparent",
+            border: "1px solid var(--border-input)",
+            cursor: disabled || uploadStatus === "uploading" ? "default" : "pointer",
+            opacity: disabled || uploadStatus === "uploading" ? 0.4 : 1,
+          }}
+          title="Upload code file"
+        >
+          <PaperclipIcon />
+        </button>
 
         <button
           onClick={() => setWebSearch((v) => !v)}
@@ -123,12 +179,30 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
       </div>
 
       <div className="flex items-center justify-between mt-2 px-1">
-        <p
-          className="text-xs"
-          style={{ color: "var(--text-secondary)", opacity: 0.6 }}
-        >
-          Enter to send · Shift+Enter for new line
-        </p>
+        {uploadStatus === "idle" ? (
+          <p
+            className="text-xs"
+            style={{ color: "var(--text-secondary)", opacity: 0.6 }}
+          >
+            Enter to send · Shift+Enter for new line
+          </p>
+        ) : (
+          <p
+            className="text-xs"
+            style={{
+              color:
+                uploadStatus === "done"
+                  ? "#22c55e"
+                  : uploadStatus === "error"
+                  ? "#ef4444"
+                  : "var(--text-secondary)",
+            }}
+          >
+            {uploadStatus === "uploading" && "Indexing…"}
+            {uploadStatus === "done" && "Codebase indexed ✓"}
+            {uploadStatus === "error" && "Upload failed"}
+          </p>
+        )}
         {showCounter && (
           <p
             className="text-xs tabular-nums"
@@ -139,6 +213,23 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
         )}
       </div>
     </div>
+  );
+}
+
+function PaperclipIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="var(--text-secondary)"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+    </svg>
   );
 }
 

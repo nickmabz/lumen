@@ -10,12 +10,19 @@ export type Conversation = {
   messages: Array<{ id: string; role: string; content: string }>;
 };
 
+export type IndexedFile = {
+  file_name: string;
+  created_at: string;
+};
+
 interface SidebarProps {
   conversations: Conversation[];
   currentId: string | null;
   onSelect: (id: string) => void;
   onNewChat: () => void;
   onDelete: (id: string) => void;
+  indexedFiles: IndexedFile[];
+  onDeleteFile: (fileName: string) => void;
 }
 
 function getTitle(conv: Conversation): string {
@@ -31,9 +38,12 @@ export function Sidebar({
   onSelect,
   onNewChat,
   onDelete,
+  indexedFiles,
+  onDeleteFile,
 }: SidebarProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [hoveredFile, setHoveredFile] = useState<string | null>(null);
 
   const handleTrashClick = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -80,8 +90,9 @@ export function Sidebar({
         </button>
       </div>
 
-      {/* Conversation list */}
+      {/* Scrollable content */}
       <div className="flex-1 overflow-y-auto px-3 py-1">
+        {/* Conversation list */}
         {conversations.length === 0 ? (
           <p className="px-2 py-3 text-xs" style={{ color: "var(--text-secondary)" }}>
             No conversations yet
@@ -99,7 +110,6 @@ export function Sidebar({
                   onMouseEnter={() => setHoveredId(conv.id)}
                   onMouseLeave={() => {
                     setHoveredId(null);
-                    // cancel confirmation if user moves away
                     if (confirmingId === conv.id) setConfirmingId(null);
                   }}
                 >
@@ -114,7 +124,6 @@ export function Sidebar({
                     {getTitle(conv)}
                   </button>
 
-                  {/* Confirmation panel */}
                   {isConfirming && (
                     <div
                       style={{
@@ -203,7 +212,6 @@ export function Sidebar({
                     </div>
                   )}
 
-                  {/* Trash icon — visible on hover when not confirming */}
                   {!isConfirming && (
                     <button
                       onClick={(e) => handleTrashClick(e, conv.id)}
@@ -245,6 +253,113 @@ export function Sidebar({
             })}
           </div>
         )}
+
+        {/* My Codebase section */}
+        <div style={{ marginTop: 16 }}>
+          <div
+            style={{
+              height: 1,
+              background: "var(--border)",
+              marginBottom: 10,
+            }}
+          />
+          <p
+            className="px-2 pb-1"
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: "0.12em",
+              color: "var(--text-secondary)",
+              textTransform: "uppercase",
+              opacity: 0.7,
+            }}
+          >
+            My Codebase
+          </p>
+
+          {indexedFiles.length === 0 ? (
+            <p
+              className="px-2 py-2 text-xs leading-relaxed"
+              style={{ color: "var(--text-secondary)", opacity: 0.5 }}
+            >
+              No files indexed yet — upload a file to get started
+            </p>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              {indexedFiles.map((file) => {
+                const isHovered = hoveredFile === file.file_name;
+                return (
+                  <div
+                    key={file.file_name}
+                    style={{ position: "relative" }}
+                    onMouseEnter={() => setHoveredFile(file.file_name)}
+                    onMouseLeave={() => setHoveredFile(null)}
+                  >
+                    <div
+                      className="sidebar-item"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        paddingRight: 30,
+                        cursor: "default",
+                      }}
+                      title={file.file_name}
+                    >
+                      <span style={{ flexShrink: 0, fontSize: 12, lineHeight: 1 }}>📎</span>
+                      <span
+                        style={{
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          fontSize: 12,
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        {file.file_name}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => onDeleteFile(file.file_name)}
+                      title="Remove from codebase"
+                      style={{
+                        position: "absolute",
+                        right: 6,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: 20,
+                        height: 20,
+                        borderRadius: 4,
+                        border: "none",
+                        background: "transparent",
+                        color: "var(--text-secondary)",
+                        cursor: "pointer",
+                        padding: 0,
+                        opacity: isHovered ? 1 : 0,
+                        transition: "opacity 0.15s, color 0.15s",
+                        pointerEvents: isHovered ? "auto" : "none",
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.color =
+                          "rgb(239, 68, 68)";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.color =
+                          "var(--text-secondary)";
+                      }}
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Bottom */}
