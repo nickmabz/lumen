@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 
 interface MessageInputProps {
-  onSend: (text: string) => void;
+  onSend: (text: string, webSearch: boolean) => void;
   disabled?: boolean;
 }
 
 export function MessageInput({ onSend, disabled }: MessageInputProps) {
   const [value, setValue] = useState("");
+  const [webSearch, setWebSearch] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
 
   const handleSend = () => {
     if (!canSend) return;
-    onSend(value.trim());
+    onSend(value.trim(), webSearch);
     setValue("");
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -74,6 +75,23 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
         />
 
         <button
+          onClick={() => setWebSearch((v) => !v)}
+          disabled={disabled}
+          className="flex-shrink-0 flex items-center justify-center rounded-lg transition-all"
+          style={{
+            width: 32,
+            height: 32,
+            background: webSearch ? "#ffbe3d" : "transparent",
+            border: `1px solid ${webSearch ? "#ffbe3d" : "var(--border-input)"}`,
+            cursor: disabled ? "default" : "pointer",
+            opacity: disabled ? 0.4 : 1,
+          }}
+          title={webSearch ? "Web search on" : "Web search off"}
+        >
+          <GlobeIcon active={webSearch} />
+        </button>
+
+        <button
           onClick={handleSend}
           disabled={!canSend}
           className="flex-shrink-0 flex items-center justify-center rounded-lg transition-all"
@@ -98,6 +116,25 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
         Enter to send · Shift+Enter for new line
       </p>
     </div>
+  );
+}
+
+function GlobeIcon({ active }: { active: boolean }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={active ? "#1c1917" : "var(--text-secondary)"}
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
   );
 }
 

@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { message, messages } = await request.json();
+  const { message, messages, webSearch } = await request.json();
 
   if (!message && (!messages || messages.length === 0)) {
     return Response.json({ error: "Message is required" }, { status: 400 });
@@ -68,6 +68,9 @@ export async function POST(request: Request) {
     max_tokens: 4096,
     system: SYSTEM_PROMPT,
     messages: anthropicMessages,
+    ...(webSearch && {
+      tools: [{ type: "web_search_20250305" as const, name: "web_search" as const }],
+    }),
   });
 
   const readable = new ReadableStream({

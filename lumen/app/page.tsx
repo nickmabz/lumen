@@ -67,7 +67,7 @@ export default function ChatPage() {
     isAtBottomRef.current = distanceFromBottom < 80;
   };
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = async (text: string, webSearch = false) => {
     if (!text.trim() || isStreaming) return;
 
     const isNew = !currentId;
@@ -110,7 +110,7 @@ export default function ChatPage() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMessages }),
+        body: JSON.stringify({ messages: apiMessages, webSearch }),
       });
 
       if (!response.ok) throw new Error(`API error ${response.status}`);
