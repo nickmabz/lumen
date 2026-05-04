@@ -21,6 +21,10 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
             background: "var(--bg-user-msg)",
             color: "#1c1917",
             fontWeight: 400,
+            wordBreak: "break-word",
+            overflowWrap: "break-word",
+            whiteSpace: "pre-wrap",
+            minWidth: 0,
           }}
         >
           {content}
